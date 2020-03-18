@@ -1,0 +1,16 @@
+{
+  "endpoints": [
+    {
+      "url": "www.google.com",
+      "port": "443"
+    },
+    {
+      "url": "www.yahoo.com",
+      "port": "443"
+    },
+    {
+      "url": "www.duckduckgo.com",
+      "port": "443"
+    }
+  ]
+}
