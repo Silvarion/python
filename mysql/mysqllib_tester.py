@@ -61,10 +61,10 @@ for db_host in args.dbList:
     db2 = mysqllib.Database(hostname='hekkamiahmsv1c.mylabserver.com', port=args.dbPort)
     db2.connect(username=args.dbUser,password=dbPswd)
     diff_dict = {}
-    for item in schemas:
-        if item['schema_name'].lower() not in ['mysql','information_schema','performance_schema','test','mydb','tgops','percona']:
-            sch = mysqllib.Schema(database=db1,name=item['schema_name'])
-            diff_dict[item['schema_name']] = sch.compare(db2)
+    # for item in schemas:
+    #     if item['schema_name'].lower() not in ['mysql','information_schema','performance_schema','test','mydb','tgops','percona']:
+    #         sch = mysqllib.Schema(database=db1,name=item['schema_name'])
+    #         diff_dict[item['schema_name']] = sch.compare(db2)
     # denuvo = mysqllib.Schema(db1,'uplay_denuvo')
     # print(json.dumps(denuvo.compare(database=db2),indent=2))
     print(json.dumps(diff_dict,indent=2))

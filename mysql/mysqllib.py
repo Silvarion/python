@@ -21,6 +21,7 @@ from mysql.connector import errorcode
 from mysql.connector import FieldType
 from argparse import ArgumentParser
 from datetime import datetime
+from datetime import timedelta
 import getpass
 import logging
 from logging import DEBUG
@@ -99,7 +100,10 @@ class Database:
                 # logger.log(DEBUG, f'command: {command}')
                 sql = f"{command.strip(';')};"
                 # logger.log(DEBUG, f'sql: "{sql}"')
+                timer_start = datetime.now()
                 cursor.execute(sql)
+                timer_end = datetime.now()
+                timer_elapsed = timer_end - timer_start
                 # logger.log(DEBUG, 'Command executed')
                 resultset = {
                     'rows': []
@@ -115,10 +119,14 @@ class Database:
                         resultset['rows'].append(row_dic)
                     resultset["action"] = "SELECT"
                     resultset["rowcount"] = cursor.rowcount
+                    resultset["start_time"] = f"{timer_start.strftime('%Y-%M-%d %H:%m:%S')}"
+                    resultset["exec_time"] = f"{timer_elapsed.total_seconds()}"
                 else:
                     logger.debug(f"RESULTSET:\n{cursor}")
                     resultset["action"] = command.upper().split(" ")[0]
                     resultset["rowcount"] = cursor.rowcount
+                    resultset["start_time"] = f"{timer_end.strftime('%Y-%M-%d %H:%m:%S')}"
+                    resultset["exec_time"] = f"{timer_elapsed.total_seconds()}"
             except mysql.connector.Error as err:
                 logger.log(WARNING, 'Catched exception while executing')
                 logger.log(CRITICAL, err.errno)
@@ -210,7 +218,8 @@ class Schema:
         if len(result) > 0:
             table[f"{result['schema_name']}.{result['table_name']}"] = result[0]
         # logger.log(DEBUG, f"Table is: {table}")
-        table['columns'] = self.get_columns(table['table_name'])
+        table_obj = Table(self, table_name)
+        table['columns'] = table_obj.get_columns()
         return table
 
     def compare(self, schema, gen_fix_script=False):
