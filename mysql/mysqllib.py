@@ -22,6 +22,7 @@ from mysql.connector import FieldType
 from argparse import ArgumentParser
 from datetime import datetime
 from datetime import timedelta
+from time import sleep
 import getpass
 import logging
 from logging import DEBUG
@@ -55,7 +56,7 @@ class Database:
         cnx = None
         try:
             cnx = mysql.connector.connect(user=username, password=password, host=self.hostname, database=self.schema)
-            logger.log(INFO,f'Database {self.schema} on {self.hostname} connected')
+            logger.log(DEBUG,f'Database {self.schema} on {self.hostname} connected')
             self.username = username
             self.password = password
         except mysql.connector.Error as err:
@@ -119,13 +120,13 @@ class Database:
                         resultset['rows'].append(row_dic)
                     resultset["action"] = "SELECT"
                     resultset["rowcount"] = cursor.rowcount
-                    resultset["start_time"] = f"{timer_start.strftime('%Y-%M-%d %H:%m:%S')}"
+                    resultset["start_time"] = f"{timer_start.strftime('%Y-%m-%d %H:%M:%S')}"
                     resultset["exec_time"] = f"{timer_elapsed.total_seconds()}"
                 else:
                     logger.debug(f"RESULTSET:\n{cursor}")
                     resultset["action"] = command.upper().split(" ")[0]
                     resultset["rowcount"] = cursor.rowcount
-                    resultset["start_time"] = f"{timer_end.strftime('%Y-%M-%d %H:%m:%S')}"
+                    resultset["start_time"] = f"{timer_end.strftime('%Y-%m-%d %H:%M:%S')}"
                     resultset["exec_time"] = f"{timer_elapsed.total_seconds()}"
             except mysql.connector.Error as err:
                 logger.log(WARNING, 'Catched exception while executing')
@@ -360,7 +361,7 @@ class Table:
     def insert(self, values: list):
         None
     
-    def delete(self, rows: list, batch_size = 1):
+    def delete(self, rows: list, batch_size = 1, delay = 0):
         full_result = {
             "rows": []
         }
@@ -372,7 +373,7 @@ class Table:
                 for column in row.keys():
                     conditions.append((column,row[column]))
                 for condition in conditions:
-                    if type(condition[1]) is "str":
+                    if type(condition[1]) is str:
                         logger.debug(f"Full command: DELETE FROM {self.fqn} WHERE {condition[0]} = '{condition[1]}'; COMMIT;")
                         result = self.database.execute(command=f"DELETE FROM {self.fqn} WHERE {condition[0]} = '{condition[1]}'; COMMIT;")
                     else:
@@ -398,6 +399,8 @@ class Table:
                     counter=0
                     str_conditions = ""
                     full_result["rows"].append(result)
+                if delay > 0:
+                    sleep(delay)
         return(full_result)
 
     

@@ -13,7 +13,6 @@ from datetime import datetime, timedelta
 class Timer:
     """Initialization"""
     def __init__(self):
-        self.days = 0
         self.hours = 0
         self.minutes = 0
         self.seconds = 0
@@ -39,14 +38,33 @@ class Timer:
         self.started = False
         self.calculateDelta()
 
-    def calculateDelta(self):
+    def calculateAllUnits(self, delta_total_secs):
         delta = self.stop_stamp - self.start_stamp
-        self.total_seconds = delta.total_seconds()
-        self.days = int(self.total_seconds // (60*60*24))
-        self.hours = int(self.total_seconds // (60*60) - (self.days * 24))
-        self.minutes = int(self.total_seconds // 60 - (self.days * 24) - (self.hours * 60 * 60))
-        self.seconds = int(delta.seconds - self.minutes * 60 - (self.days * 24) - (self.hours * 60 * 60))
-        self.microseconds = delta.microseconds
+        return {
+            total_seconds = delta.total_seconds()
+            days = int(self.total_seconds // (60*60*24))
+            hours = int(self.total_seconds // (60*60) - (self.days * 24))
+            minutes = (int(self.total_seconds // 60) - (self.days * 24) - (self.hours * 60 * 60))
+            seconds = int(delta.seconds - self.minutes * 60 - (self.days * 24) - (self.hours * 60 * 60))
+            microseconds = (total_seconds - int(self.total_seconds))
+        }
+
+    def getCurrentCount(self):
+        return(self.calculateAllUnits((datetime.now()-self.start_stamp).total_seconds))
+
+    def calculateDelta(self, stamp = None):
+        if stamp is None and self.stop_stamp is not None:
+            delta = self.stop_stamp - self.start_stamp
+        else:
+            delta = stamp - self.start_stamp
+        calcs = self.calculateAllUnits(delta.total_seconds)
+        self.days = calcs["days"]
+        self.hours = calcs["hours"]
+        self.minutes = calcs["minutes"]
+        self.seconds = calcs["seconds"]
+        self.microseconds = calcs["microseconds"]
+        self.total_seconds = calcs["total_seconds"]
         
     def reset(self):
         self.__init__()
+
