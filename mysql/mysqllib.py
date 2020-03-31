@@ -119,13 +119,13 @@ class Database:
                         resultset['rows'].append(row_dic)
                     resultset["action"] = "SELECT"
                     resultset["rowcount"] = cursor.rowcount
-                    resultset["start_time"] = f"{timer_start.strftime('%Y-%M-%d %H:%m:%S')}"
+                    resultset["start_time"] = f"{timer_start.strftime('%Y-%m-%d %H:%M:%S')}"
                     resultset["exec_time"] = f"{timer_elapsed.total_seconds()}"
                 else:
                     logger.debug(f"RESULTSET:\n{cursor}")
                     resultset["action"] = command.upper().split(" ")[0]
                     resultset["rowcount"] = cursor.rowcount
-                    resultset["start_time"] = f"{timer_end.strftime('%Y-%M-%d %H:%m:%S')}"
+                    resultset["start_time"] = f"{timer_end.strftime('%Y-%m-%d %H:%M:%S')}"
                     resultset["exec_time"] = f"{timer_elapsed.total_seconds()}"
             except mysql.connector.Error as err:
                 logger.log(WARNING, 'Catched exception while executing')
@@ -372,7 +372,7 @@ class Table:
                 for column in row.keys():
                     conditions.append((column,row[column]))
                 for condition in conditions:
-                    if type(condition[1]) is "str":
+                    if type(condition[1]) is str:
                         logger.debug(f"Full command: DELETE FROM {self.fqn} WHERE {condition[0]} = '{condition[1]}'; COMMIT;")
                         result = self.database.execute(command=f"DELETE FROM {self.fqn} WHERE {condition[0]} = '{condition[1]}'; COMMIT;")
                     else:
