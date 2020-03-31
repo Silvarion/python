@@ -22,6 +22,7 @@ from mysql.connector import FieldType
 from argparse import ArgumentParser
 from datetime import datetime
 from datetime import timedelta
+from time import sleep
 import getpass
 import logging
 from logging import DEBUG
@@ -55,7 +56,7 @@ class Database:
         cnx = None
         try:
             cnx = mysql.connector.connect(user=username, password=password, host=self.hostname, database=self.schema)
-            logger.log(INFO,f'Database {self.schema} on {self.hostname} connected')
+            logger.log(DEBUG,f'Database {self.schema} on {self.hostname} connected')
             self.username = username
             self.password = password
         except mysql.connector.Error as err:
@@ -360,7 +361,7 @@ class Table:
     def insert(self, values: list):
         None
     
-    def delete(self, rows: list, batch_size = 1):
+    def delete(self, rows: list, batch_size = 1, delay = 0):
         full_result = {
             "rows": []
         }
@@ -398,6 +399,8 @@ class Table:
                     counter=0
                     str_conditions = ""
                     full_result["rows"].append(result)
+                if delay > 0:
+                    sleep(delay)
         return(full_result)
 
     
