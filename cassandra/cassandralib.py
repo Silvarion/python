@@ -55,6 +55,7 @@ class Cassandra:
             try:
                 rows = self.session.execute(query)
                 result = {
+                    "status": "ok",
                     "rows": []
                     }
                 for row in rows:
@@ -62,9 +63,17 @@ class Cassandra:
                     for key in query_keys:
                         dict_row[key] = row.__getattribute__(key)
                     result["rows"].append(dict_row)
-            except Exception e:
+                return result
+            except Exception as e:
                 logger.critical(f"Critical: {e}")
+                result["status"] = "error"
+                result["error"] = str(e)
+            finally:
+                return result
         else:
             logger.warning("No query provided")
-
-
+            return {
+                "rows": [],
+                "status": "error",
+                "error": "No query provided"
+            }
