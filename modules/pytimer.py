@@ -69,7 +69,7 @@ class Timer:
     
     def getCurrentCountAsString(self):
         calculated = self.calculateAllUnits(datetime.now())
-        return f"{calculated["days"]:02}:{calculated["hours"]:02}:{calculated["minutes"]:02}:{calculated["seconds"]:02}"
+        return f"{calculated['days']:02}:{calculated['hours']:02}:{calculated['minutes']:02}:{calculated['seconds']:02}"
     
     def printCurrentCount(self):
         current = self.calculateAllUnits(datetime.now())
