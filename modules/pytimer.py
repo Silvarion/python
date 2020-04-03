@@ -38,19 +38,42 @@ class Timer:
         self.started = False
         self.calculateDelta()
 
-    def calculateAllUnits(self, delta_total_secs):
-        delta = self.stop_stamp - self.start_stamp
+    def calculateAllUnits(self, stamp: datetime):
+        delta = stamp - self.start_stamp
+        total_seconds = delta.total_seconds()
+        days = int( delta.total_seconds() // (60*60*24))
+        if days > 0:
+            hours = int((delta.total_seconds() - (days*24*60*60)) % (60*60))
+        else:
+            hours = int(delta.total_seconds() // (60*60))
+        if hours > 0:
+            minutes = int((delta.total_seconds() - (days*24*60*60) - (hours*60*60)) % (60*60))
+        else:
+            minutes = int(delta.total_seconds() // 60)
+        if minutes > 0:
+            seconds = int((delta.total_seconds() - (days*24*60*60) - (hours*60*60) - (minutes*60)) % (60))
+        else:
+            seconds = int(delta.total_seconds())
+        microseconds = (total_seconds - int( delta.total_seconds()))
         return {
-            total_seconds = delta.total_seconds()
-            days = int(self.total_seconds // (60*60*24))
-            hours = int(self.total_seconds // (60*60) - (self.days * 24))
-            minutes = (int(self.total_seconds // 60) - (self.days * 24) - (self.hours * 60 * 60))
-            seconds = int(delta.seconds - self.minutes * 60 - (self.days * 24) - (self.hours * 60 * 60))
-            microseconds = (total_seconds - int(self.total_seconds))
+            "total_seconds": total_seconds,
+            "days": days,
+            "hours": hours,
+            "minutes": minutes,
+            "seconds": seconds,
+            "microseconds": microseconds
         }
 
     def getCurrentCount(self):
-        return(self.calculateAllUnits((datetime.now()-self.start_stamp).total_seconds))
+        return(self.calculateAllUnits(datetime.now()))
+    
+    def getCurrentCountAsString(self):
+        calculated = self.calculateAllUnits(datetime.now())
+        return f"{calculated["days"]:02}:{calculated["hours"]:02}:{calculated["minutes"]:02}:{calculated["seconds"]:02}"
+    
+    def printCurrentCount(self):
+        current = self.calculateAllUnits(datetime.now())
+        print(f"{current['days']:02}:{current['hours']:02}:{current['minutes']:02}:{current['seconds']:02}.{int(current['microseconds']*10000)}")
 
     def calculateDelta(self, stamp = None):
         if stamp is None and self.stop_stamp is not None:
@@ -68,3 +91,4 @@ class Timer:
     def reset(self):
         self.__init__()
 
+    
