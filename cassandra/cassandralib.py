@@ -26,12 +26,16 @@ logger = logging.getLogger()
 
 class Cassandra:
     """Initialization"""
-    def __init__(self,nodes: list, port: int = 9042, username = None, password = None, ssl_context = None):
+    def __init__(self,nodes: list, port: int = 9042, username = None, password = None, loadBalancingPolicy = None, ssl_context = None):
         self.auth_provider = PlainTextAuthProvider(username = username, password = password)
         self.nodes = nodes
         self.port = port
         self.ssl_context = ssl_context
-        self.cluster = Cluster(nodes,port,ssl_context)
+        self.cluster = Cluster(
+            contact_points = self.nodes,
+            port = self.port,
+            auth_provider = self.auth_provider,
+            loadBalancingPolicy = loadBalancingPolicy)
         self.connected = False
     
     def connect(self, keyspace = None):
