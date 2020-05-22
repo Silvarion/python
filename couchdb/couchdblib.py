@@ -412,7 +412,7 @@ class Server(object):
             "rows": {}
         }
         db_list = self.all_dbs()
-        if "error" not in db_list.keys():
+        if type(db_list) == "list":
             for item in db_list:
                 result["processed"] += 1
                 db = Database(server=self, name=item)
