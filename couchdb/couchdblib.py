@@ -238,7 +238,7 @@ class Server(object):
         self.__init__(hostname=self.hostname, port=self.port, admin_port=self.admin_port, username=self.username, password=self.password)
 
     # API Endpoint Interaction
-    def endpoint(self, endpoint, headers=None, data=None, json_data=None, method='GET', admin=False):
+    def endpoint(self, endpoint, headers={}, data=None, json_data=None, method='GET', admin=False):
         logger = logging.getLogger('Server::endpoint')
         logger.debug('Calling main endpoint function')
         # self.refresh_connection()
