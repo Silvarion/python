@@ -34,7 +34,7 @@ from logging import WARNING
 
 logging.basicConfig(
     format='[%(asctime)s][%(levelname)-8s] %(message)s',
-    level=DEBUG,
+    level=INFO,
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger()
@@ -128,6 +128,7 @@ class Database:
                     resultset["rowcount"] = cursor.rowcount
                     resultset["start_time"] = f"{timer_end.strftime('%Y-%m-%d %H:%M:%S')}"
                     resultset["exec_time"] = f"{timer_elapsed.total_seconds()}"
+                logger.info(f"Command executed successfully in {resultset['exec_time']} s")
             except mysql.connector.Error as err:
                 logger.log(WARNING, 'Catched exception while executing')
                 logger.log(CRITICAL, err.errno)
@@ -366,41 +367,50 @@ class Table:
             "rows": []
         }
         if len(rows) == 0:
-            logger.log("No IDs found!")
-        if batch_size == 1:
-            for row in rows:
-                conditions = []
-                for column in row.keys():
-                    conditions.append((column,row[column]))
-                for condition in conditions:
-                    if type(condition[1]) is str:
-                        logger.debug(f"Full command: DELETE FROM {self.fqn} WHERE {condition[0]} = '{condition[1]}'; COMMIT;")
-                        result = self.database.execute(command=f"DELETE FROM {self.fqn} WHERE {condition[0]} = '{condition[1]}'; COMMIT;")
-                    else:
-                        logger.debug(f"Full command: DELETE FROM {self.fqn} WHERE {condition[0]} = {condition[1]}; COMMIT;")
-                        result = self.database.execute(command=f"DELETE FROM {self.fqn} WHERE {condition[0]} = {condition[1]}; COMMIT;")
-                    full_result["rows"].append(result)
-        elif batch_size > 1:
-            str_conditions = ""
-            counter = 0
-            for row in rows:
-                conditions = []
-                for column in row.keys():
-                    conditions.append((column,row[column]))
-                for condition in conditions:
-                    str_conditions += f"{condition[1]},"
-                counter+=1
-                if counter == batch_size or row == rows[len(rows)-1]:
-                    str_conditions = str_conditions[:(len(str_conditions)-1)]
-                    cond_string = f"{condition[0]} IN ('" + str_conditions.replace(",","','") + "')"
-                    full_command = f"DELETE FROM {self.fqn} WHERE {cond_string}; COMMIT;"
-                    logger.debug(f"Full command: {full_command}")
-                    result=self.database.execute(command=full_command)
-                    counter=0
-                    str_conditions = ""
-                    full_result["rows"].append(result)
-                if delay > 0:
-                    sleep(delay)
+            logger.warning("No IDs found!")
+            full_result["rowcount"] = 0
+        else:
+            if batch_size == 1:
+                for row in rows:
+                    conditions = []
+                    for column in row.keys():
+                        conditions.append((column,row[column]))
+                    for condition in conditions:
+                        logger.debug(f"Condition value type is: {type(condition[1])}")
+                        if type(condition[1]) is str:
+                            logger.debug(f"Full command: DELETE FROM {self.fqn} WHERE {condition[0]} = '{condition[1]}'; COMMIT;")
+                            result = self.database.execute(command=f"DELETE FROM {self.fqn} WHERE {condition[0]} = '{condition[1]}'; COMMIT;")
+                        else:
+                            logger.debug(f"Full command: DELETE FROM {self.fqn} WHERE {condition[0]} = {condition[1]}; COMMIT;")
+                            result = self.database.execute(command=f"DELETE FROM {self.fqn} WHERE {condition[0]} = {condition[1]}; COMMIT;")
+                        full_result["rows"].append(result)
+            elif batch_size > 1:
+                str_conditions = ""
+                counter = 0
+                for row in rows:
+                    conditions = []
+                    for column in row.keys():
+                        conditions.append((column,row[column]))
+                    for condition in conditions:
+                        str_conditions += f"{condition[1]},"
+                    counter+=1
+                    if counter == batch_size or row == rows[len(rows)-1]:
+                        str_conditions = str_conditions[:(len(str_conditions)-1)]
+                        cond_string = f"{condition[0]} IN ('" + str_conditions.replace(",","','") + "')"
+                        full_command = f"DELETE FROM {self.fqn} WHERE {cond_string}; COMMIT;"
+                        # logger.debug(f"Full command: {full_command}")
+                        logger.debug("Executing DELETE!")
+                        result=self.database.execute(command=full_command)
+                        counter=0
+                        str_conditions = ""
+                        full_result["rows"].append(result)
+                        if delay > 0:
+                            logger.debug("Found delay")
+                            t = delay
+                            while t > 0:
+                                print(f"Waiting for {t} seconds...", end="\r")
+                                sleep(1)
+                                t -= 1
         return(full_result)
 
     
@@ -485,3 +495,12 @@ class Table:
                 if remote_script:
                     print(f'Run on {table.database.hostname}:{remote_script}')
         return None
+
+# Methods
+def list_to_sql(items):
+    result = ""
+    for item in items:
+        result += f"'{item}',"
+    result = result[:len(result)-1]
+    return result
+    

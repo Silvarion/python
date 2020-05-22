@@ -144,7 +144,7 @@ def execute(cnx, sql, showSlaveStatus=False):
     try:
         cursor = cnx.cursor(buffered=True, dictionary=True)
         cursor.execute("SHOW SLAVE STATUS;")
-        if cursor.rowcount > 0 and (sql.find("CREATE") == 0 or sql.find("DROP") == 0 or sql.find("ALTER") == 0 or sql.find("GRANT ") == 0 or sql.find("REVOKE") == 0 or sql.find("INSERT") == 0 or sql.find("DELETE") == 0 or sql.find("UPDATE") == 0 or sql.find("IMPORT") == 0):
+        if cursor.rowcount > 0 and (sql.find("CREATE") == 0 or sql.find("DROP") == 0 or sql.find("ALTER") == 0 or sql.find("GRANT ") == 0 or sql.find("REVOKE") == 0 or sql.find("INSERT") == 0 or sql.find("DELETE") == 0 or sql.find("UPDATE") == 0 or sql.find("IMPORT") == 0 or sql.find("RENAME") == 0):
             log('error', 'THIS SERVER IS A SLAVE, NO DDL/DML WILL BE RUN HERE!!! ONLY SELECTS ALLOWED!')
         else:
             if args.verbosity > 3:

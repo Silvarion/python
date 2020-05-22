@@ -31,6 +31,7 @@ class Timer:
     
     def pause(self):
         self.stop_stamp = datetime.now()
+        self.calculateDelta()
 
     def stop(self):
         self.stop_stamp = datetime.now()
@@ -47,11 +48,11 @@ class Timer:
         else:
             hours = int(delta.total_seconds() // (60*60))
         if hours > 0:
-            minutes = int((delta.total_seconds() - (days*24*60*60) - (hours*60*60)) % (60*60))
+            minutes = int((delta.total_seconds() - (days*24*60*60) - (hours*60*60)) % (60))
         else:
             minutes = int(delta.total_seconds() // 60)
         if minutes > 0:
-            seconds = int((delta.total_seconds() - (days*24*60*60) - (hours*60*60) - (minutes*60)) % (60))
+            seconds = int((delta.total_seconds() - (days*24*60*60) - (hours*60*60) - (minutes*60)))
         else:
             seconds = int(delta.total_seconds())
         microseconds = (total_seconds - int( delta.total_seconds()))
@@ -76,8 +77,11 @@ class Timer:
         print(f"{current['days']:02}:{current['hours']:02}:{current['minutes']:02}:{current['seconds']:02}.{int(current['microseconds']*10000)}")
 
     def calculateDelta(self, stamp = None):
-        if stamp is None and self.stop_stamp is not None:
-            delta = self.stop_stamp - self.start_stamp
+        if stamp is None:
+            if self.stop_stamp is not None:
+                delta = self.stop_stamp - self.start_stamp
+            else:
+                delta = datetime.now() - self.start_stamp
         else:
             delta = stamp - self.start_stamp
         calcs = self.calculateAllUnits(delta.total_seconds)
