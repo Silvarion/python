@@ -55,6 +55,8 @@ def endpoint_api(object, endpoint, headers={}, data={}, json_data={}, method='GE
         creds = (object.username,object.password)
     elif type(object) is Database:
         creds = (object.server.username,object.server.password)
+    elif type(object) is Node:
+        creds = (object.server.username,object.server.password)
     elif type(object) is Document:
         creds = (object.database.server.username,object.database.server.password)
     logger.debug(f"[{get_linenumber()}] Checking which module to use")
