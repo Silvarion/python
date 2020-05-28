@@ -664,7 +664,7 @@ class Database(object):
 
     def set_security_data(self, definition):
         logger = logging.getLogger("Database::set_security_data")
-        resp = self.server.endpoint(endpoint="_security", json_data=definition, method="PUT")
+        resp = self.server.endpoint(endpoint=f"{self.name}/_security", json_data=definition, method="PUT")
         logger.info(json.dumps(resp,indent=2))
     
     def add_admin_user(self, username):
