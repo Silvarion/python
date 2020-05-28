@@ -913,7 +913,7 @@ class Document(object):
                     self.exists = False
             else:
                 self.exists = True
-                self.revision = resp['_rev']
+                self.revision = resp['rev']
         else:
             doc_id = uuid.uuid4().hex
             lookup = endpoint_api(
