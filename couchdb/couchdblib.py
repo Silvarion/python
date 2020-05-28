@@ -590,10 +590,13 @@ class Database(object):
                 'status': 'error',
                 'content': ue
             }
+        logger.debug("Finishing initialization")
         if 'db_name' in resp.keys():
+            logger.debug("Database found!")
             self.name = resp['db_name']
             self.exists = True
         else:
+            logger.debug("Database NOT found!")
             self.name = name
             self.exists = False
 
