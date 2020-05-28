@@ -669,7 +669,7 @@ class Database(object):
     
     def add_admin_user(self, username):
         logger = logging.getLogger("Database::add_admin_user")
-        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        sec_data = self.get_security_data()
         if "admins" not in sec_data.keys():
             sec_data["admins"] = {}
         if "names" not in sec_data["admins"].keys():
@@ -680,7 +680,7 @@ class Database(object):
 
     def remove_admin_user(self, username):
         logger = logging.getLogger("Database::remove_admin_user")
-        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        sec_data = self.get_security_data()
         if "admins" not in sec_data.keys():
             sec_data["admins"] = {}
         if "names" not in sec_data["admins"].keys():
@@ -694,7 +694,7 @@ class Database(object):
 
     def add_admin_role(self, role_name):
         logger = logging.getLogger("Database::add_admin_role")
-        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        sec_data = self.get_security_data()
         if "admins" not in sec_data.keys():
             sec_data["admins"] = {}
         if "roles" not in sec_data["admins"].keys():
@@ -705,7 +705,7 @@ class Database(object):
 
     def remove_admin_role(self, role_name):
         logger = logging.getLogger("Database::remove_admin_role")
-        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        sec_data = self.get_security_data()
         if "admins" not in sec_data.keys():
             sec_data["admins"] = {}
         if "roles" not in sec_data["admins"].keys():
@@ -719,7 +719,7 @@ class Database(object):
 
     def add_member_user(self, username):
         logger = logging.getLogger("Database::add_member_user")
-        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        sec_data = self.get_security_data()
         if "members" not in sec_data.keys():
             sec_data["members"] = {}
         if "names" not in sec_data["members"].keys():
@@ -730,7 +730,7 @@ class Database(object):
 
     def remove_member_user(self, username):
         logger = logging.getLogger("Database::remove_member_user")
-        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        sec_data = self.get_security_data()
         if "members" not in sec_data.keys():
             sec_data["members"] = {}
         if "names" not in sec_data["members"].keys():
@@ -744,7 +744,7 @@ class Database(object):
 
     def add_member_role(self, role_name):
         logger = logging.getLogger("Database::add_member_role")
-        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        sec_data = self.get_security_data()
         if "members" not in sec_data.keys():
             sec_data["members"] = {}
         if "roles" not in sec_data["members"].keys():
@@ -755,7 +755,7 @@ class Database(object):
 
     def remove_member_role(self, role_name):
         logger = logging.getLogger("Database::remove_member_role")
-        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        sec_data = self.get_security_data()
         if "members" not in sec_data.keys():
             sec_data["members"] = {}
         if "roles" not in sec_data["members"].keys():
