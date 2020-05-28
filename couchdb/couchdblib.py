@@ -670,6 +670,8 @@ class Database(object):
     def add_admin_user(self, username):
         logger = logging.getLogger("Database::add_admin_user")
         sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "admins" not in sec_data.keys():
+            sec_data["admins"] = {}
         if "names" not in sec_data["admins"].keys():
             sec_data["admins"]["names"] = []
         sec_data["admins"]["names"].append(username)
@@ -679,6 +681,8 @@ class Database(object):
     def remove_admin_user(self, username):
         logger = logging.getLogger("Database::remove_admin_user")
         sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "admins" not in sec_data.keys():
+            sec_data["admins"] = {}
         if "names" not in sec_data["admins"].keys():
             sec_data["admins"]["names"] = []
         if username in sec_data["admins"]["names"]:
@@ -691,6 +695,8 @@ class Database(object):
     def add_admin_role(self, role_name):
         logger = logging.getLogger("Database::add_admin_role")
         sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "admins" not in sec_data.keys():
+            sec_data["admins"] = {}
         if "roles" not in sec_data["admins"].keys():
             sec_data["admins"]["roles"] = []
         sec_data["admins"]["roles"].append(role_name)
@@ -700,6 +706,8 @@ class Database(object):
     def remove_admin_role(self, role_name):
         logger = logging.getLogger("Database::remove_admin_role")
         sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "admins" not in sec_data.keys():
+            sec_data["admins"] = {}
         if "roles" not in sec_data["admins"].keys():
             sec_data["admins"]["roles"] = []
         if role_name in sec_data["admins"]["roles"]:
@@ -712,8 +720,10 @@ class Database(object):
     def add_member_user(self, username):
         logger = logging.getLogger("Database::add_member_user")
         sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
-        if "names" not in sec_data["admins"].keys():
-            sec_data["admins"]["names"] = []
+        if "members" not in sec_data.keys():
+            sec_data["members"] = {}
+        if "names" not in sec_data["members"].keys():
+            sec_data["members"]["names"] = []
         sec_data["members"]["names"].append(username)
         logger.info("Pushing updated security info")
         self.set_security_data(definition=sec_data)
@@ -721,6 +731,8 @@ class Database(object):
     def remove_member_user(self, username):
         logger = logging.getLogger("Database::remove_member_user")
         sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "members" not in sec_data.keys():
+            sec_data["members"] = {}
         if "names" not in sec_data["members"].keys():
             sec_data["members"]["names"] = []
         if username in sec_data["members"]["names"]:
@@ -733,16 +745,20 @@ class Database(object):
     def add_member_role(self, role_name):
         logger = logging.getLogger("Database::add_member_role")
         sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
-        if "roles" not in sec_data["admins"].keys():
-            sec_data["admins"]["roles"] = []
-        sec_data["admins"]["roles"].append(role_name)
+        if "members" not in sec_data.keys():
+            sec_data["members"] = {}
+        if "roles" not in sec_data["members"].keys():
+            sec_data["members"]["roles"] = []
+        sec_data["members"]["roles"].append(role_name)
         logger.info("Pushing updated security info")
         self.set_security_data(definition=sec_data)
 
     def remove_member_role(self, role_name):
         logger = logging.getLogger("Database::remove_member_role")
         sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
-        if "roles" not in sec_data["admins"].keys():
+        if "members" not in sec_data.keys():
+            sec_data["members"] = {}
+        if "roles" not in sec_data["members"].keys():
             sec_data["members"]["roles"] = []
         if role_name in sec_data["members"]["roles"]:
             sec_data["members"]["roles"].remove(role_name)
