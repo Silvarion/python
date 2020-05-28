@@ -652,6 +652,96 @@ class Database(object):
         logger.debug('Building endopint')
         return endpoint_api(self, endpoint='_changes')
 
+    # Add/Remove Members/Roles
+    def set_security_data(self, definition):
+        logger = logging.getLogger("Database::set_security_data")
+        resp = self.server.endopint(endpoint=f"{self.url}_security", json_data=definition, method="PUT")
+        logger.info(json.dumps(resp,indent=2))
+    
+    def add_admin_user(self, username):
+        logger = logging.getLogger("Database::add_admin_user")
+        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "names" not in sec_data["admins"].keys():
+            sec_data["admins"]["names"] = []
+        sec_data["admins"]["names"].append(username)
+        logger.info("Pushing updated security info")
+        self.set_security_data(definition=sec_data)
+
+    def remove_admin_user(self, username):
+        logger = logging.getLogger("Database::remove_admin_user")
+        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "names" not in sec_data["admins"].keys():
+            sec_data["admins"]["names"] = []
+        if username in sec_data["admins"]["names"]:
+            sec_data["admins"]["names"].remove(username)
+            logger.info("Pushing updated security info")
+            self.set_security_data(definition=sec_data)
+        else:
+            logger.error(f"{username} is not a member of the admins group")
+
+    def add_admin_role(self, role_name):
+        logger = logging.getLogger("Database::add_admin_role")
+        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "roles" not in sec_data["admins"].keys():
+            sec_data["admins"]["roles"] = []
+        sec_data["admins"]["roles"].append(role_name)
+        logger.info("Pushing updated security info")
+        self.set_security_data(definition=sec_data)
+
+    def remove_admin_role(self, role_name):
+        logger = logging.getLogger("Database::remove_admin_role")
+        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "roles" not in sec_data["admins"].keys():
+            sec_data["admins"]["roles"] = []
+        if role_name in sec_data["admins"]["roles"]:
+            sec_data["admins"]["roles"].remove(role_name)
+            logger.info("Pushing updated security info")
+            self.set_security_data(definition=sec_data)
+        else:
+            logger.error(f"{role_name} is not a member of the admins group")
+
+    def add_member_user(self, username):
+        logger = logging.getLogger("Database::add_member_user")
+        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "names" not in sec_data["admins"].keys():
+            sec_data["admins"]["names"] = []
+        sec_data["members"]["names"].append(username)
+        logger.info("Pushing updated security info")
+        self.set_security_data(definition=sec_data)
+
+    def remove_member_user(self, username):
+        logger = logging.getLogger("Database::remove_member_user")
+        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "names" not in sec_data["members"].keys():
+            sec_data["members"]["names"] = []
+        if username in sec_data["members"]["names"]:
+            sec_data["members"]["names"].remove(username)
+            logger.info("Pushing updated security info")
+            self.set_security_data(definition=sec_data)
+        else:
+            logger.error(f"{username} is not a member of the members group")
+
+    def add_member_role(self, role_name):
+        logger = logging.getLogger("Database::add_member_role")
+        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "roles" not in sec_data["admins"].keys():
+            sec_data["admins"]["roles"] = []
+        sec_data["admins"]["roles"].append(role_name)
+        logger.info("Pushing updated security info")
+        self.set_security_data(definition=sec_data)
+
+    def remove_member_role(self, role_name):
+        logger = logging.getLogger("Database::remove_member_role")
+        sec_data = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        if "roles" not in sec_data["admins"].keys():
+            sec_data["members"]["roles"] = []
+        if role_name in sec_data["members"]["roles"]:
+            sec_data["members"]["roles"].remove(role_name)
+            logger.info("Pushing updated security info")
+            self.set_security_data(definition=sec_data)
+        else:
+            logger.error(f"{role_name} is not part of the members group")
+
     # Find document by ID
     def find_by_id(self, doc_id):
         logger = logging.getLogger('Database::find_by_id')
