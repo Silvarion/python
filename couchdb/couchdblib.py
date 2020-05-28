@@ -674,9 +674,10 @@ class Database(object):
             sec_data["admins"] = {}
         if "names" not in sec_data["admins"].keys():
             sec_data["admins"]["names"] = []
-        sec_data["admins"]["names"].append(username)
-        logger.info("Pushing updated security info")
-        self.set_security_data(definition=sec_data)
+        if username not in sec_data["admins"]["names"]:
+            sec_data["admins"]["names"].append(username)
+            logger.info("Pushing updated security info")
+            self.set_security_data(definition=sec_data)
 
     def remove_admin_user(self, username):
         logger = logging.getLogger("Database::remove_admin_user")
@@ -699,9 +700,10 @@ class Database(object):
             sec_data["admins"] = {}
         if "roles" not in sec_data["admins"].keys():
             sec_data["admins"]["roles"] = []
-        sec_data["admins"]["roles"].append(role_name)
-        logger.info("Pushing updated security info")
-        self.set_security_data(definition=sec_data)
+        if role_name not in sec_data["admins"]["roles"]:
+            sec_data["admins"]["roles"].append(role_name)
+            logger.info("Pushing updated security info")
+            self.set_security_data(definition=sec_data)
 
     def remove_admin_role(self, role_name):
         logger = logging.getLogger("Database::remove_admin_role")
@@ -724,9 +726,10 @@ class Database(object):
             sec_data["members"] = {}
         if "names" not in sec_data["members"].keys():
             sec_data["members"]["names"] = []
-        sec_data["members"]["names"].append(username)
-        logger.info("Pushing updated security info")
-        self.set_security_data(definition=sec_data)
+        if username not in sec_data["members"]["names"]:
+            sec_data["members"]["names"].append(username)
+            logger.info("Pushing updated security info")
+            self.set_security_data(definition=sec_data)
 
     def remove_member_user(self, username):
         logger = logging.getLogger("Database::remove_member_user")
@@ -749,9 +752,10 @@ class Database(object):
             sec_data["members"] = {}
         if "roles" not in sec_data["members"].keys():
             sec_data["members"]["roles"] = []
-        sec_data["members"]["roles"].append(role_name)
-        logger.info("Pushing updated security info")
-        self.set_security_data(definition=sec_data)
+        if role_name not in sec_data["members"]["roles"]:
+            sec_data["members"]["roles"].append(role_name)
+            logger.info("Pushing updated security info")
+            self.set_security_data(definition=sec_data)
 
     def remove_member_role(self, role_name):
         logger = logging.getLogger("Database::remove_member_role")
