@@ -658,13 +658,13 @@ class Database(object):
     # Security Data
     def get_security_data(self):
         logger = logging.getLogger("Database::set_security_data")
-        resp = self.server.endpoint(endpoint=f"{self.url}_security", method="GET")
+        resp = self.server.endpoint(endpoint=f"{self.name}/_security", method="GET")
         logger.debug(json.dumps(resp,indent=2))
         return(resp)
 
     def set_security_data(self, definition):
         logger = logging.getLogger("Database::set_security_data")
-        resp = self.server.endpoint(endpoint=f"{self.url}_security", json_data=definition, method="PUT")
+        resp = self.server.endpoint(endpoint="_security", json_data=definition, method="PUT")
         logger.info(json.dumps(resp,indent=2))
     
     def add_admin_user(self, username):
