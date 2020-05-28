@@ -337,7 +337,7 @@ class Server(object):
             setup_state = self.endpoint(endpoint="_cluster_setup", headers=headers, json_data=json_data,method="POST")
             logger.debug(setup_state)
             for node in seed_list:
-                if type(node) == 'couchdblib.Node':
+                if type(node) is Node:
                     json_data = {
                         "action": "add_node",
                         "host": node.name,
@@ -345,7 +345,7 @@ class Server(object):
                         "username": username,
                         "password": password,
                     }
-                elif type(node) == 'str':
+                elif type(node) is str:
                     json_data = {
                         "action": "add_node",
                         "host": node,
@@ -426,18 +426,22 @@ class Server(object):
 
     # Sync all 
     def sync_all_shards(self):
+        logger = logging.getLogger("Server::sync_all_shards")
         result = {
             "processed": 0,
             "rows": {}
         }
         db_list = self.all_dbs()
-        if type(db_list) == "list":
+        logger.debug(f"dblist type is {type(db_list)}")
+        if type(db_list) is list:
             for item in db_list:
+                logger.info(f"Syncing shards for {item}")
                 result["processed"] += 1
                 db = Database(server=self, name=item)
                 result["rows"][item] = db.sync_shards()
             return result
         else:
+            logger.error("Invalid List!!")
             return db_list
 
     # Compact all
@@ -903,16 +907,13 @@ class Document(object):
             logger.debug('Looking for the document')
             resp = endpoint_api(self, endpoint='', headers=headers)
             logger.debug('Response from server: ' + json.dumps(resp, indent=2))
-            if "error" not in resp.keys():
-                logger.debug('Setting Revision')
-                if 'status' in resp.keys():
-                    if resp['status'] == 'error':
-                        self.exists = False
-                else:
-                    self.exists = True
-                    self.revision = resp['_rev']
+            logger.debug('Setting Revision')
+            if 'status' in resp.keys():
+                if resp['status'] == 'error':
+                    self.exists = False
             else:
-                self.exists = False
+                self.exists = True
+                self.revision = resp['_rev']
         else:
             doc_id = uuid.uuid4().hex
             lookup = endpoint_api(
