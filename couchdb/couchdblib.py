@@ -652,7 +652,13 @@ class Database(object):
         logger.debug('Building endopint')
         return endpoint_api(self, endpoint='_changes')
 
-    # Add/Remove Members/Roles
+    # Security Data
+    def get_security_data(self):
+        logger = logging.getLogger("Database::set_security_data")
+        resp = self.server.endopint(endpoint=f"{self.url}_security", method="GET")
+        logger.debug(json.dumps(resp,indent=2))
+        return(resp)
+
     def set_security_data(self, definition):
         logger = logging.getLogger("Database::set_security_data")
         resp = self.server.endopint(endpoint=f"{self.url}_security", json_data=definition, method="PUT")
