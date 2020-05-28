@@ -372,6 +372,25 @@ class Server(object):
         if not db.exists:
             db.create()
 
+    # Server User/Admin Addition/Removal
+    def add_user(self, username, password, roles = []):
+        payload = {
+            "name": username,
+            "password": password,
+            "roles": roles,
+            "type": "user"
+        }
+        self.endpoint(endpoint=f"/_users/org.couchdb.user:{username}", json_data=payload, method="PUT")
+
+    def delete_user(self, username):
+        logger = logging.getLogger("Server::delete_user")
+        users = Database(server=self, name="_users")
+        to_drop = Document(database=users,doc_id=f"org.couchdb.user:{username}")
+        if to_drop.exists:
+            to_drop.delete()
+        else:
+            logger.error("User does not exist. Nothing to do")
+
     # Node Addition/Removal
     def add_node(self, hostname, port = 5984, id = "couchdb"):
         logger = logging.getLogger('Server::add_nodes')
@@ -771,7 +790,7 @@ class Document(object):
                     self.exists = False
             else:
                 self.exists = True
-                self.revision = resp['rev']
+                self.revision = resp['_rev']
         else:
             doc_id = uuid.uuid4().hex
             lookup = endpoint_api(
