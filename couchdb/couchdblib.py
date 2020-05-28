@@ -911,6 +911,8 @@ class Document(object):
             if 'status' in resp.keys():
                 if resp['status'] == 'error':
                     self.exists = False
+            elif "error" in resp.keys():
+                self.exists = False
             else:
                 self.exists = True
                 self.revision = resp['_rev']
