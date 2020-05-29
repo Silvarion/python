@@ -1006,7 +1006,7 @@ class Document(object):
                 "Content-Type": "application/json",
                 'If-Match': self.revision
             }
-            response = endpoint_api(self, endpoint='', headers=headers, json_data=update_content, method='PUT')
+            response = endpoint_api(self, endpoint='', headers=headers, json_data=updated_content, method='PUT')
             # if response["ok"]:
             logger.debug(f"{json.dumps(response,indent=2)}")
             return response
