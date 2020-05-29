@@ -907,7 +907,7 @@ class Document(object):
             logger.debug('Looking for the document')
             resp = endpoint_api(self, endpoint='', headers=headers)
             logger.debug('Response from server: ' + json.dumps(resp, indent=2))
-            logger.debug('Setting Revision')
+            logger.debug('Getting all content')
             if 'status' in resp.keys():
                 if resp['status'] == 'error':
                     self.exists = False
@@ -916,6 +916,8 @@ class Document(object):
             else:
                 self.exists = True
                 self.revision = resp['_rev']
+                for key in resp.keys():
+                    content[key] = resp[key]
         else:
             doc_id = uuid.uuid4().hex
             lookup = endpoint_api(
