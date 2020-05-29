@@ -989,13 +989,16 @@ class Document(object):
     def current_revision(self):
         logger = logging.getLogger('Document::current_revision')
         logger.debug("Getting revision set")
-        self.revision = self.database.find_by_id(doc_id = self.id).revision
+        data = self.database.find_by_id(doc_id = self.id)
+        self.revision = data.revision
+        self.content = data.content
 
     # Updates existing document
     def update(self):
         logger = logging.getLogger('Document::update')
         logger.debug("Saving updated content")
-        updated_content = self.content
+        updated_content = json.loads(json.dumps(self.content))
+        logger.debug(f"Saved Data: {json.dumps(updated_content,indent=2)}")
         logger.debug(f"Cheking if document exists at {self.url}")
         if self.is_there():
             self.current_revision()
@@ -1006,8 +1009,9 @@ class Document(object):
                 "Content-Type": "application/json",
                 'If-Match': self.revision
             }
+            logger.debug(f"Saved Data before endpoint call: {json.dumps(updated_content,indent=2)}")
             response = endpoint_api(self, endpoint='', headers=headers, json_data=updated_content, method='PUT')
-            # if response["ok"]:
+            self.current_revision()
             logger.debug(f"{json.dumps(response,indent=2)}")
             return response
         else:
