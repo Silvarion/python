@@ -994,6 +994,8 @@ class Document(object):
     # Updates existing document
     def update(self):
         logger = logging.getLogger('Document::update')
+        logger.debug("Saving updated content")
+        updated_content = self.content
         logger.debug(f"Cheking if document exists at {self.url}")
         if self.is_there():
             self.current_revision()
@@ -1004,7 +1006,7 @@ class Document(object):
                 "Content-Type": "application/json",
                 'If-Match': self.revision
             }
-            response = endpoint_api(self, endpoint='', headers=headers, json_data=self.content, method='PUT')
+            response = endpoint_api(self, endpoint='', headers=headers, json_data=update_content, method='PUT')
             # if response["ok"]:
             logger.debug(f"{json.dumps(response,indent=2)}")
             return response
