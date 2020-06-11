@@ -374,13 +374,23 @@ class Server(object):
 
     # Server User/Admin Addition/Removal
     def add_user(self, username, password, roles = []):
-        payload = {
-            "name": username,
-            "password": password,
-            "roles": roles,
-            "type": "user"
-        }
-        self.endpoint(endpoint=f"/_users/org.couchdb.user:{username}", json_data=payload, method="PUT")
+        user_db = Database(server=self, name="_users")
+        user_doc = Document(database=user_db,doc_id=f"org.couchdb.user:{username}")
+        if not user_doc.exists:
+            # payload = {
+            #     "name": username,
+            #     "password": password,
+            #     "roles": roles,
+            #     "type": "user"
+            # }
+            user_doc.content = {
+                "name": username,
+                "password": password,
+                "roles": roles,
+                "type": "user"
+            }
+            # self.endpoint(endpoint=f"/_users/org.couchdb.user:{username}", json_data=payload, method="PUT")
+            user_doc.create()
 
     def delete_user(self, username):
         logger = logging.getLogger("Server::delete_user")
