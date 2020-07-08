@@ -402,37 +402,56 @@ class Server(object):
             logger.error("User does not exist. Nothing to do")
 
     # Node Addition/Removal
-    def add_node(self, hostname, port = 5984, id = "couchdb"):
+    def add_node(self, node):
         logger = logging.getLogger('Server::add_nodes')
-        node_identifier = f"{id}@{hostname}"
         # self.refresh_connection()
         result = self.membership()
         if "all_nodes" in result.keys():            
-            if node_identifier in result['all_nodes']:
-                logger.warning(f"{node_identifier} is already a member of the cluster")
+            if node.name in result['all_nodes']:
+                logger.warning(f"{node.name} is already a member of the cluster")
                 response = {
                     "status": "error",
                     "errcode": "400",
                     "body": {
-                        "node": node_identifier,
+                        "node": node.name,
                         "message": "Node already registered"
                     }
                 }
             else:
-                response = self.endpoint(endpoint = f"_nodes/{node_identifier}", method="PUT", admin=True, data={})
+                response = self.endpoint(endpoint = f"_node/_local/_nodes/{node.name}", method="PUT", admin=True, data={})
         else:
             response = {
                 "status": "error",
                 "errcode": "500",
                 "body": {
-                    "node": node_identifier,
+                    "node": node.name,
                     "message": "Error trying to get membership"
                 }
             }
         return response
 
-    def remove_node(self, hostname, port = 5984, id = "couchdb"):
-        None
+    def remove_node(self, node):
+        logger = logging.getLogger('Server::add_nodes')
+        result = self.membership()
+        if "all_nodes" in result.keys():            
+            if node.name in result['all_nodes']:
+                logger.warning(f"{node.name} is visible to the cluster")
+            if "cluster_nodes" in result.keys():
+                if node.name in result['cluster_nodes']:
+                    # Get Node document revision
+                    response = self.endpoint(endpoint = f"_node/_local/_nodes/{node.name}", method="GET", admin=True, data={})
+                    endpoint = f"_node/_local/_nodes/{node.name}?rev={response['_rev']}"
+                    response = self.endpoint(endpoint=endpoint, method="DELETE", admin=True, data={})
+        else:
+            response = {
+                "status": "error",
+                "errcode": "500",
+                "body": {
+                    "node": node.name,
+                    "message": "Error trying to get membership"
+                }
+            }
+        return response
 
     # Sync all 
     def sync_all_shards(self):
