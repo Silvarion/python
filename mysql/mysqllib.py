@@ -63,7 +63,7 @@ class Database:
     def connect(self, username, password, schema='',auth_plugin=None,nolog=False):
         cnx = None
         try:
-            if auth_plugin is not None:
+            if auth_plugin:
                 logger.debug("Using auth_plugin for authentication")
                 cnx = mysql.connector.connect(user=username, password=password, host=self.hostname, database=schema,auth_plugin=auth_plugin)
             else:
