@@ -49,6 +49,7 @@ class Database:
         self.hostname = hostname
         self.port = port
         self.schema = database
+        self.auth_plugin = None
         logger.setLevel(log_level)
 
     # Methods
@@ -59,20 +60,25 @@ class Database:
             
         }
     
-    def connect(self, username, password, schema='information_schema'):
+    def connect(self, username, password, schema='',auth_plugin=None,nolog=False):
         cnx = None
         try:
-            cnx = mysql.connector.connect(user=username, password=password, host=self.hostname, database=self.schema)
-            logger.debug(f'Database {self.schema} on {self.hostname} connected')
+            if auth_plugin:
+                cnx = mysql.connector.connect(user=username, password=password, host=self.hostname, database=schema,auth_plugin=auth_plugin)
+            else:
+                cnx = mysql.connector.connect(user=username, password=password, host=self.hostname, database=schema)
+            if not nolog:
+                logger.info(f'Database {self.schema} on {self.hostname} connected')
             self.username = username
             self.password = password
+            self.auth_plugin = auth_plugin
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                logger.critical("Something is wrong with your user name or password")
+                logger.log(CRITICAL, "Something is wrong with your user name or password")
             elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                logger.critical("Database does not exist")
+                logger.log(CRITICAL, "Database does not exist")
             else:
-                logger.critical(err)
+                logger.log(CRITICAL, err)
         finally:
             if cnx:
                 self.connection = cnx
@@ -102,30 +108,33 @@ class Database:
 
     def reconnect(self):
         if "username" in dir(self) and "password" in dir(self):
-            self.connect(username=self.username, password=self.password)
+            if self.auth_plugin:
+                self.connect(username=self.username, password=self.password, auth_plugin=self.auth_plugin, nolog=True)
+            else:
+                self.connect(username=self.username, password=self.password, nolog=True)
 
     def execute(self,command):
         self.reconnect()
         resultset = {}
         if self.is_connected():
-            # logger.debug('Database is connected. Trying to create cursor')
+            # logger.log(DEBUG, 'Database is connected. Trying to create cursor')
             try:
                 cursor = self.connection.cursor(buffered=True,dictionary=True)
-                # logger.debug('Cursor created')
-                # logger.debug(f'command: {command}')
+                # logger.log(DEBUG, 'Cursor created')
+                # logger.log(DEBUG, f'command: {command}')
                 sql = f"{command.strip(';')};"
-                # logger.debug(f'sql: "{sql}"')
+                # logger.log(DEBUG, f'sql: "{sql}"')
                 timer_start = datetime.now()
                 cursor.execute(sql)
                 timer_end = datetime.now()
                 timer_elapsed = timer_end - timer_start
-                # logger.debug('Command executed')
+                # logger.log(DEBUG, 'Command executed')
                 resultset = {
                     'rows': []
                 }
                 if command.upper().find("SELECT") == 0:
                     rows = cursor.fetchall()
-                    # logger.debug(f'Fetched {cursor.rowcount} rows')
+                    # logger.log(DEBUG, f'Fetched {cursor.rowcount} rows')
                     columns = cursor.column_names
                     for row in rows:
                         row_dic = {}
@@ -179,10 +188,10 @@ class Database:
     def get_schema(self, schema_name):
         result = self.execute(f'SELECT schema_name, default_character_set_name AS charset, default_collation_name as collation FROM information_schema.schemata WHERE schema_name = \'{schema_name}\'')['rows']
         if len(result) > 0:
-            logger.debug(f'Schema {schema_name} found. Returning {result}')
+            logger.log(DEBUG, f'Schema {schema_name} found. Returning {result}')
             return result
         else:
-            logger.debug(f'Schema {schema_name} not found. Returning None')
+            logger.log(DEBUG, f'Schema {schema_name} not found. Returning None')
             return None
     
     ## User Methods
@@ -191,13 +200,19 @@ class Database:
         result = self.execute(f"SELECT user, host FROM mysql.user WHERE user = '{username}'")
         if len(result["rows"]) > 0:
             for row in result["rows"]:
-                response.append(User(database=self, username=row["user"].decode(), host=row["host"].decode()))
+                if type(row["user"]) is bytearray:
+                    response.append(User(database=self, username=row["user"].decode(), host=row["host"].decode()))
+                else:
+                    response.append(User(database=self, username=row["user"], host=row["host"]))
         return response
 
     def get_user_by_name_host(self, username, host):
         result = self.execute(f"SELECT user, host FROM mysql.user WHERE user = '{username}' AND host = '{host}'")
-        if len(result["rows"]) > 0:
-            return User(database=self, username=result["rows"][0]["user"].decode(), host=result["rows"][0]["host"].decode())
+        if result["rowcount"] == 1:
+            if type(result["rows"][0]["user"]) is bytearray:
+                return User(database=self, username=result["rows"][0]["user"].decode(), host=result["rows"][0]["host"].decode())
+            else:
+                return User(database=self, username=result["rows"][0]["user"], host=result["rows"][0]["host"])
 
     # def get_users(self):
     #     return self.execute(f"SELECT user, host FROM mysql.user;")
@@ -245,7 +260,7 @@ class Schema:
                 'avg_row_length': row['avg_row_length'],
                 'max_data_length': row['max_data_length']
             }
-        # logger.debug(f"Tables is: {tables}")
+        # logger.log(DEBUG, f"Tables is: {tables}")
         for table_name in tables.keys():
             table = Table(schema = self, name=table_name)
             tables[table_name]['columns'] = table.get_columns()
@@ -256,36 +271,36 @@ class Schema:
         table = {}
         if len(result) > 0:
             table[f"{result['table_name']}"] = result[0]
-        # logger.debug(f"Table is: {table}")
+        # logger.log(DEBUG, f"Table is: {table}")
         table_obj = Table(self, table_name)
         table['columns'] = table_obj.get_columns()
         return table
 
     def compare(self, schema, gen_fix_script=False):
         # Check there is a valid connection in both databases
-        logger.debug(f'Checking connectivity to {self.database.hostname} and {schema.database.hostname}')
+        logger.log(DEBUG, f'Checking connectivity to {self.database.hostname} and {schema.database.hostname}')
         if self.database.is_connected() and schema.database.is_connected():
         # Check that the schema exists in both databases
-            logger.debug('Creating schema objects for both databases')
+            logger.log(DEBUG, 'Creating schema objects for both databases')
             local_schema = self
             remote_schema = schema
             if remote_schema.name != 'NotFound':
-                logger.debug(f'Remote Schema is: {remote_schema.name}')
+                logger.log(DEBUG, f'Remote Schema is: {remote_schema.name}')
                 # Get colunms definitions and compare
                 local_schema.load_tables()
-                # logger.debug(f'Local Schema Tables: {local_schema.tables}')
+                # logger.log(DEBUG, f'Local Schema Tables: {local_schema.tables}')
                 remote_schema.load_tables()
-                # logger.debug(f'Remote Schema Tables: {remote_schema.tables}')
+                # logger.log(DEBUG, f'Remote Schema Tables: {remote_schema.tables}')
                 diff_dict = {
                     'differences': [],
                     'fix_commands': []
                 }
                 for table_entry in local_schema.tables.keys():
                     if table_entry in remote_schema.tables.keys():
-                        logger.debug(f"Checking table {table_entry}")
+                        logger.log(DEBUG, f"Checking table {table_entry}")
                         for column in local_schema.tables[table_entry]['columns'].keys():
                             if column in remote_schema.tables[table_entry]['columns'].keys():
-                                # logger.debug(f"Checking column {column}")
+                                # logger.log(DEBUG, f"Checking column {column}")
                                 for key in local_schema.tables[table_entry]['columns'][column].keys():
                                     if key != 'ordinal_position':
                                         if local_schema.tables[table_entry]['columns'][column][key] != remote_schema.tables[table_entry]['columns'][column][key]:
@@ -360,11 +375,11 @@ class Table:
         self.fqn = f"{self.schema.name}.{self.name}"
     
     def get_columns(self):
-        # logger.debug(f"Table is: {table_name}")
+        # logger.log(DEBUG, f"Table is: {table_name}")
         result = self.database.execute(f"SELECT column_name, ordinal_position, column_default, is_nullable, data_type, column_type, character_set_name, collation_name FROM information_schema.columns WHERE table_schema = '{self.schema.name}' AND table_name = '{self.name}' ORDER BY ordinal_position")
         column_dict = {}
         for column in result['rows']:
-            # logger.debug(column)
+            # logger.log(DEBUG, column)
             column_dict[column['column_name']] = {
                 'ordinal_position': column['ordinal_position'],
                 'column_default': column['column_default'],
@@ -636,8 +651,8 @@ class User:
         }
 
     def check(self):
-        response = self.database.get_user_by_name_host(username=self.username, host= self.host)
-        if response.exists:
+        response = self.database.execute(f"SELECT user, host FROM mysql.user WHERE user = '{self.username}' AND host = '{self.host}'")
+        if response["rowcount"] == 1:
             self.exists = True
 
     def get_grants(self):
@@ -662,13 +677,12 @@ class User:
             response["rows"].append(self.database.execute(sql))
             self.check()
             # Roles
-            for role in self.roles:
-                sql = f"GRANT {role} TO {self.username}@'{self.host}'"
-                response["rows"].append(self.database.execute(sql))
+            # for role in self.roles:
+            #     sql = f"GRANT {role} TO {self.username}@'{self.host}'"
+            #     response["rows"].append(self.database.execute(sql))
             # Grants
-            for grant in self.grants:
-                sql = f"GRANT {grant['privilege']} ON {grant['table']} TO {self.username}@'{self.host}'"
-                response["rows"].append(self.database.execute(sql))
+            # for grant in self.grants:
+            #     response["rows"].append(self.database.execute(grant))
             # Flush Privileges
             self.database.flush_privileges()
             
@@ -695,13 +709,12 @@ class User:
             response["rows"].append(self.database.execute(sql))
             self.check()
             # Roles
-            for role in self.roles:
-                sql = f"GRANT {role} TO {self.username}@'{self.host}'"
-                response["rows"].append(self.database.execute(sql))
+            # for role in self.roles:
+            #     sql = f"GRANT {role} TO {self.username}@'{self.host}'"
+            #     response["rows"].append(self.database.execute(sql))
             # Grants
-            for grant in self.grants:
-                sql = f"GRANT {grant['privilege']} ON {grant['table']} TO {self.username}@'{self.host}'"
-                response["rows"].append(self.database.execute(sql))
+            # for grant in self.grants:
+            #     response["rows"].append(self.database.execute(grant))
             # Flush Privileges
             self.database.flush_privileges()
         else:
