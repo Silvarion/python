@@ -65,10 +65,10 @@ class Database:
         try:
             if auth_plugin:
                 logger.debug("Using auth_plugin for authentication")
-                cnx = mysql.connector.connect(user=username, password=password, host=self.hostname, database=schema,auth_plugin=auth_plugin)
+                cnx = mysql.connector.connect(user=username, password=password, host=self.hostname, port=self.port, database=schema,auth_plugin=auth_plugin)
             else:
                 logger.debug("Using defaults for authentication")
-                cnx = mysql.connector.connect(user=username, password=password, host=self.hostname, database=schema)
+                cnx = mysql.connector.connect(user=username, password=password, host=self.hostname, port=self.port, database=schema)
             if not nolog:
                 logger.info(f'Database {self.schema} on {self.hostname} connected')
             self.username = username
