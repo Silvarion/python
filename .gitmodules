@@ -1,0 +1,3 @@
+[submodule "packages/mysqllib"]
+	path = packages/mysqllib
+	url = git@github.com:Silvarion/mysqllib.git
