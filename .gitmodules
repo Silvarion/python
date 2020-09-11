@@ -1,0 +1,3 @@
+[submodule "packages/pyoomysql"]
+	path = packages/pyoomysql
+	url = git@github.com:Silvarion/pyoomysql.git
