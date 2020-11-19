@@ -1,3 +1,8 @@
 [submodule "packages/pyoomysql"]
 	path = packages/pyoomysql
 	url = git@github.com:Silvarion/pyoomysql.git
+
+[submodule "packages/pyoocouchdb"]
+	path = packages/pyoocouchdb
+	url = git@github.com:Silvarion/pyoocouchdb.git
+
