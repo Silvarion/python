@@ -359,7 +359,7 @@ def load_targets(file_path: str, file_type: str):
             with open(file_path,"r") as targets_file:
                 targets_dict = json.load(targets_file)
                 for host in targets_dict.keys():
-                    targets_list.append(targets_dict[host])
+                    targets_list.append({"host": host,"port":targets_dict[host]})
         else:
             logger.debug("Trying to open plan-text file")
             with open(file_path,"r") as targets_file:
@@ -485,6 +485,8 @@ def main():
                     if answer == "back":
                         answer = "account"
                         break
+                    elif:
+                        
         elif answer == "run_command":
             answer = prompt(run_command, style=style)
             if answer["run_type"] == "command":

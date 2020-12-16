@@ -1,4 +1,4 @@
 {
-    "hekkamiahmsv1c.mylabserver.com":3306,
-    "hekkamiahmsv2c.mylabserver.com":3306
+    "some-mysql-host":3306,
+    "someother-mysql-host":3306
 }
