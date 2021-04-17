@@ -1,11 +1,5 @@
 .vscode/settings.json
-couchdb/__pycache__/*
 */__pycache__/*
-mysql/__pycache__/mysqllib.cpython-36.pyc
-mysql/__pycache__/mysqllib.cpython-37.pyc
 couchdb/couchdb_driver_test.py
 mysql/mysql_data_check.py
 couchdb/aws_lambda_cluster_config.py
-modules/__pycache__/pytimer.cpython-36.pyc
-modules/__pycache__/*
-modules/__pycache__/pytimer.cpython-36.pyc
