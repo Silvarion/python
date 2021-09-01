@@ -3,3 +3,4 @@
 couchdb/couchdb_driver_test.py
 mysql/mysql_data_check.py
 couchdb/aws_lambda_cluster_config.py
+*.ipynb
